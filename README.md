@@ -3,7 +3,7 @@
 A sample ipam plugin which leverages NSX for allocating IP to a pod using the CNI specification. Each request for a pod IP will result in API requests towards NSX-T manager to allocate IP from IP pools referenced via NetworkAttachmentDefinition.
 
 ```
-# Execute following command at Kubernetes master
+Example use of nsx ipam plugin
 $ cat <<EOF | kubectl create -f -
 apiVersion: "k8s.cni.cncf.io/v1"
 kind: NetworkAttachmentDefinition
@@ -16,13 +16,10 @@ spec:
             "master": "eth1",
             "mode": "bridge",
             "ipam": {
-                "type": "host-local",
+                "type": "nsx-ipam",
                 "ranges": [
                     [ {
-                         "subnet": "10.10.0.0/16",
-                         "rangeStart": "10.10.1.20",
-                         "rangeEnd": "10.10.3.50",
-                         "gateway": "10.10.0.254"
+                         "pool": "nsx-pool-name" <--- will be single one, will support an array in future
                     } ]
                 ]
             }
@@ -37,3 +34,10 @@ The desired features are
 4. Start with IPv4 support. 
 5. Can be used for both macvlan and ipvlan interfaces. Obviate use of DHCP when using ipvlan etc as it requires support for fields like Option 61(client identifier) which some DHCP servers may not support.
 6. Provide support for IP based on pod annotation(based on need), so that IP can be preserved for secondary interface even if pod moves to a different worker node for any reason.
+7. have the ability to populate a default gateway/ static routes etc using data populated in NSX-T manager for the referenced pool
+8. reuse the tag-scope under nsx ip pool for route dest cidr and next hop so that routes can be programmed.(might need feature addition in future)
+
+To do in later phase
+1. support for ipv6
+2. multiple ip pool so that ip can be allocated from any one of them
+3. support for integration with antrea so that IP can be allocated for pods from nsx.
